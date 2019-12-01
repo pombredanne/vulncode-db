@@ -1,9 +1,8 @@
+-r requirements.txt
 pylint
-yapf
-astroid==1.6.1
+yapf>=0.28
 pyyaml
-Flask==1.0.2
-Flask-Migrate==2.2.1
-# Mysql dependencies.
-mysqlclient
-mysql-python
+pytest==5.2.0
+pytest-mock==1.11.0
+pytest-cov==2.7.1
+pytest-flask-sqlalchemy==1.0.2

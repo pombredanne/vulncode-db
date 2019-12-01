@@ -12,22 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-runtime: python27
-api_version: 1
-threadsafe: true
-
-libraries:
-- name: ssl
-  version: latest
-- name: MySQLdb
-  version: latest
+runtime: python37
 
 handlers:
 - url: /static
   static_dir: static
   secure: always
 - url: /.*
-  script: main.app
+  script: auto
   secure: always
 
 env_variables:
@@ -44,7 +36,8 @@ env_variables:
   # Database settings for local.
   MYSQL_LOCAL_USER: 'root'
   MYSQL_LOCAL_PASS: 'pass'
-  VCS_PROXY_LOCAL_URL: 'https://127.0.0.1:8088/'
+  # Only specify the following if you are using a non-docker vcs-proxy.
+  # VCS_PROXY_LOCAL_URL: 'https://127.0.0.1:8088/'
   # Enables connecting to the remote database using the cloud sql proxy.
   # Proxy CloudSQL with
   # ./cloud_sql_proxy -instances [MYSQL_CONNECTION_NAME]=tcp:3307
@@ -72,3 +65,7 @@ env_variables:
   # Admin emails separated by ','. This is required to make permanent changes to the database.
   APPLICATION_ADMINS: 'user@gmail.com'
 
+  # Shows a warning as changes can only be stored permanently by admins.
+  # DEMO_MODE: False
+  # Show a "maintenance page".
+  # MAINTENANCE_MODE: False

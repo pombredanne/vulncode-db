@@ -16,7 +16,7 @@ services:
 
   database:
     image: mysql:5.7
-    command: --default-authentication-plugin=mysql_native_password --init-file /docker-entrypoint-initdb.d/db_schema.sql
+    command: --default-authentication-plugin=mysql_native_password --init-file /docker-entrypoint-initdb.d/db_schema.sql --character-set-server=utf8 --collation-server=utf8_general_ci
     volumes:
       - ./db-data/:/var/lib/mysql
       # Uncomment if you needs mysql logs.
@@ -27,7 +27,7 @@ services:
       MYSQL_ROOT_PASSWORD: pass
     # Publishing mysql port as 3308 for debugging purposes.
     ports:
-      - "3308:3306"
+      - "127.0.0.1:3308:3306"
     expose:
       - "3306"
 
@@ -35,19 +35,28 @@ services:
     build:
       context: ..
       dockerfile: ./docker/frontend/Dockerfile
+    # Wait for the database to be available before starting the application.
+    command: >
+      bash -c "while ! (exec 6<>/dev/tcp/database/3306) 2>/dev/null; do
+        echo 'Waiting for database:3306...'; sleep 5;
+      done;
+      bash /app/run.sh"
     volumes:
       - ../:/app
       #- /etc/passwd:/etc/passwd:ro
       #- /etc/group:/etc/group:ro
     environment:
       - MYSQL_HOST=database
+      - VCS_PROXY_LOCAL_URL=https://vcs-proxy:8088/
     #user: "${UID}:${GID}"
     depends_on:
       - vcs-proxy
       - database
+    image: frontend
     links:
       - "vcs-proxy"
       - "database"
     # The main application will be reachable from your host on http://127.0.0.1:8080
     ports:
       - "8080:8080"
+

@@ -12,7 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from google.appengine.ext import vendor
+from flask import Blueprint
 
-# Add any libraries installed in the "lib" folder.
-vendor.add('third_party')
+bp = Blueprint("vcs_proxy", __name__)
+
+
+# TODO: Refactor this to be automatically determined for the VCS proxy and
+#  main application.
+# Note: Keep this in sync with the route in gce_vcs_proxy.py.
+@bp.route("/main_api")
+def main_api():
+    pass

@@ -13,50 +13,60 @@
 # limitations under the License.
 
 import logging
+
 from lib.vcs_handler import *
-from lib.vcs_handler.vcs_handler import VcsHandler, VULN_ID_PLACEHOLDER, HASH_PLACEHOLDER, PATH_PLACEHOLDER
+from lib.vcs_handler.vcs_handler import (
+    VcsHandler,
+    VULN_ID_PLACEHOLDER,
+    HASH_PLACEHOLDER,
+    PATH_PLACEHOLDER,
+)
 from app.exceptions import InvalidIdentifierException
 
 
 def get_inheritor_clases(klass):
-  """Returns a list of all defined and valid vcs handlers.
+    """
+    Returns a list of all defined and valid vcs handlers.
 
-  Args:
+    Args:
     klass: Name of parent class.
 
-  Returns:
+    Returns:
     List: Defined vcs handlers.
-  """
-  subclasses = set()
-  work = [klass]
-  while work:
-    parent = work.pop()
-    for child in parent.__subclasses__():
-      if child not in subclasses:
-        subclasses.add(child)
-        work.append(child)
-  return subclasses
+    """
+    subclasses = set()
+    work = [klass]
+    while work:
+        parent = work.pop()
+        for child in parent.__subclasses__():
+            if child not in subclasses:
+                subclasses.add(child)
+                work.append(child)
+    return subclasses
 
 
-def getVcsHandler(app, resource_url):
-  """Tries to instantiate a vcs handler with teh given resource url.
+def get_vcs_handler(app, resource_url):
+    """
+    Tries to instantiate a vcs handler with teh given resource url.
 
-  Args:
+    Args:
     app:
     resource_url:
 
-  Returns:
+    Returns:
     Null|VCS object: A valid vcs handler if available.
-  """
-  new_handler = None
-  vcs_handlers = get_inheritor_clases(VcsHandler)
-  for vcs_handler in vcs_handlers:
-    try:
-      new_handler = vcs_handler(app, resource_url)
-      logging.debug('Parsing %s with %s succeeded', resource_url,
-                    vcs_handler.__name__)
-    except InvalidIdentifierException as e:
-      logging.debug('Parsing %s with %s failed: %s', resource_url,
-                    vcs_handler.__name__, e)
-      pass
-  return new_handler
+    """
+    new_handler = None
+    vcs_handlers = get_inheritor_clases(VcsHandler)
+    for vcs_handler in vcs_handlers:
+        try:
+            new_handler = vcs_handler(app, resource_url)
+            logging.debug(
+                f"Parsing {resource_url} with {vcs_handler.__name__} succeeded"
+            )
+        except InvalidIdentifierException as e:
+            logging.debug(
+                f"Parsing {resource_url} with {vcs_handler.__name__} failed: {e}"
+            )
+            pass
+    return new_handler

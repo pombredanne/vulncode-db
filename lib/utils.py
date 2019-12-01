@@ -12,41 +12,89 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from flask import jsonify
 import os
+import re
+import time
+from functools import wraps
+
+from flask import jsonify, request
+from sqlakeyset import unserialize_bookmark
 
 
 def get_file_contents(path):
-  with open(path, 'r') as f:
-    output = f.read()
-  return output
+    with open(path) as file:
+        output = file.read()
+    return output
 
 
 def write_contents(path, content):
-  with open(path, 'w') as f:
-    f.write(content)
+    with open(path, "w") as f:
+        f.write(content)
 
 
-def createJsonResponse(msg, status_code=200, **kwargs):
-  message = {'msg': msg}
-  message.update(kwargs)
-  resp = jsonify(message)
-  resp.status_code = status_code
-  return resp
-
-  # Load app.yaml environment variables manually.
+def create_json_response(msg, status_code=200, **kwargs):
+    message = {"msg": msg}
+    message.update(kwargs)
+    resp = jsonify(message)
+    resp.status_code = status_code
+    return resp
 
 
-def manuallyReadAppConfig():
-  try:
-    import yaml
-  except ImportError:
-    return
-  with open('app.yaml', 'r') as f:
+def manually_read_app_config():
+    """Load app.yaml environment variables manually."""
     try:
-      yaml_context = yaml.load(f, Loader=yaml.SafeLoader)
-      env_variables = yaml_context['env_variables']
-      for key in env_variables:
-        os.environ[key] = str(env_variables[key])
-    except yaml.YAMLError as e:
-      print(e)
+        import yaml
+    except ImportError:
+        return None
+    with open("app.yaml") as file:
+        try:
+            yaml_context = yaml.load(file, Loader=yaml.SafeLoader)
+            env_variables = yaml_context["env_variables"]
+            for key in env_variables:
+                os.environ[key] = str(env_variables[key])
+        except yaml.YAMLError as err:
+            print(err)
+
+
+def measure_execution_time(label):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            start = time.time()
+            res = func(*args, **kwargs)
+            end = time.time()
+
+            print(f"[{label}] {end - start}s elapsed")
+            return res
+
+        return wrapper
+
+    return decorator
+
+
+def filter_pagination_param(param):
+    filtered = re.sub(r'[^a-zA-Z\d\- <>:~]', '', param)
+    return filtered
+
+
+def parse_pagination_param(param_key):
+    pagination_param = request.args.get(param_key, None)
+    if not pagination_param:
+        return False
+    sanitized_param = filter_pagination_param(pagination_param)
+    unserialized_pagination = unserialize_bookmark(sanitized_param)
+    return unserialized_pagination
+
+
+def function_hooking_wrap(original_function, hooking_function):
+    """
+    Allows to hook a given function with a provided hooking function.
+    :param original_function:
+    :param hooking_function:
+    :return:
+    """
+    @wraps(original_function)
+    def hook(*args, **kwargs):
+        hooking_function(*args, **kwargs)
+        return original_function(*args, **kwargs)
+
+    return hook

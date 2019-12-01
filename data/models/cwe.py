@@ -12,24 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import re
-import cfg
-from data.models.base import DefaultBase
+from data.models.base import CweBase
 from data.utils import populate_models
-from sqlalchemy import Column, Text, String, Index
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Text, String
 
 
-class Cwe(DefaultBase):
-  __bind_key__ = 'cwe'
-  __table_args__ = {'schema': 'cwe'}
-  __tablename__ = 'cwe_data'
+class CweData(CweBase):
+    __tablename__ = "cwe_data"
 
-  cwe_id = Column(String(255), primary_key=True)
-  cwe_name = Column(Text)
+    cwe_id = Column(String(255), primary_key=True, index=True)
+    cwe_name = Column(Text)
 
-
-Index('cwe_id_index', Cwe.cwe_id)
 
 # must be set after all definitions
 __all__ = populate_models(__name__)
